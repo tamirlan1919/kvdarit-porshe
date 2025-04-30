@@ -239,3 +239,10 @@ def get_city_by_ip():
     
 
 
+def get_client_ip():
+    # Проверяем, если IP-адрес передан через прокси (например, балансировщик нагрузки)
+    forwarded_ip = request.headers.get('X-Forwarded-For')
+    if forwarded_ip:
+        # X-Forwarded-For может содержать несколько адресов, первый из которых реальный
+        return forwarded_ip.split(',')[0]
+    return request.remote_addr

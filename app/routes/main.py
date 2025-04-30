@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from app.forms.registration_form import RegistrationForm
-from app.services.location_service import is_in_allowed_location, get_location_by_ip, get_formatted_location
+from app.services.location_service import get_client_ip, is_in_allowed_location, get_location_by_ip, get_formatted_location
 from app.services.registration_service import process_registration, check_user_in_table
 from app.database.engine import db
 from flask_login import login_required, current_user
@@ -15,7 +15,7 @@ def index():
 
     if form.validate_on_submit():
         # Получаем IP-адрес пользователя
-        ip = request.remote_addr
+        ip = get_client_ip()
         
         # Получаем данные о местоположении
         city, region, country = get_location_by_ip(ip)
