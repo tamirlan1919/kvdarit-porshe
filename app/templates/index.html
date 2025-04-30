@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+
+{% block title %}Розыгрыш PORSCHE CAYENNE - Регистрация{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Информация о призе -->
+    <div class="col-lg-6">
+        <div class="prize-card p-3">
+            <div class="car-image-container position-relative mb-4">
+                <img src="{{ url_for('static', filename='images/porsche-cayenne.png') }}?v=1" alt="Porsche Cayenne" class="car-image w-100">
+            </div>
+
+            <h3 class="feature-heading mb-4"><i class="fas fa-info-circle me-2"></i>Для участия в розыгрыше необходимо:</h3>
+            <div class="car-specs mb-4">
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
+                        <div class="spec-card d-flex border border-dark" style="overflow: hidden; max-width: 600px; margin: 0 auto;">
+                            <div class="number-badge bg-black text-white d-flex align-items-center justify-content-center" style="min-width: 80px; width: 80px; font-weight: bold; font-size: 2.5rem;">1</div>
+                            <div class="bg-white text-left flex-grow-1 d-flex flex-column justify-content-center p-3 py-4" style="min-height: 100px;">
+                                <h5 class="mb-1 text-dark" style="font-size: 1.5rem; font-weight: 700; line-height: 1.3;">Вступить в сообщество</h5>
+                                <p class="mb-0 text-dark" style="font-size: 1.3rem;">«PORSCHE от КАМИЛЯ»</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="spec-card d-flex border border-dark" style="overflow: hidden; max-width: 600px; margin: 0 auto;">
+                            <div class="number-badge bg-black text-white d-flex align-items-center justify-content-center" style="min-width: 80px; width: 80px; font-weight: bold; font-size: 2.5rem;">2</div>
+                            <div class="bg-white text-left flex-grow-1 d-flex flex-column justify-content-center p-3 py-4" style="min-height: 100px;">
+                                <h5 class="mb-1 text-dark" style="font-size: 1.5rem; font-weight: 700; line-height: 1.3;">Добавить всего 30 спонсоров</h5>
+                                <p class="mb-0 text-dark" style="font-size: 1.3rem;">отправим в сообщество</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="spec-card d-flex border border-dark" style="overflow: hidden; max-width: 600px; margin: 0 auto;">
+                            <div class="number-badge bg-black text-white d-flex align-items-center justify-content-center" style="min-width: 80px; width: 80px; font-weight: bold; font-size: 2.5rem;">3</div>
+                            <div class="bg-white text-left flex-grow-1 d-flex flex-column justify-content-center p-3 py-4" style="min-height: 100px;">
+                                <h5 class="mb-1 text-dark" style="font-size: 1.5rem; font-weight: 700; line-height: 1.3;">Выложить на статус видео с ссылкой</h5>
+                                <p class="mb-0 text-dark" style="font-size: 1.3rem;">отправим в сообщество</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="rules-heading"><i class="fas fa-gavel me-2"></i>Правила розыгрыша</h3>
+            <ul class="rules-list">
+                <li>Участвовать могут только жители Махачкалы (включая все районы, посёлки и сёла) и Каспийска</li>
+                <li>Возраст участников должен быть не менее 16 лет</li>
+                <li>Нельзя покидать сообщество до завершения розыгрыша</li>
+                <li>Победитель будет выбран случайным образом</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Форма регистрации -->
+    <div class="col-lg-6">
+        <div class="registration-card p-4">
+            <h2 class="text-center mb-4"><i class="fas fa-user-plus me-2 text-primary"></i>Регистрация участника</h2>
+            
+            <div id="location-status" style="display: none;"></div>
+            
+            <form id="registration-form" action="/" method="post" class="registration-form">
+                {{ form.hidden_tag() }}
+                <input type="hidden" id="latitude" name="latitude" value="">
+                <input type="hidden" id="longitude" name="longitude" value="">
+
+                <!-- Фамилия и Имя -->
+                <div class="form-group mb-3">
+                    <label for="full_name" class="form-label"><i class="fas fa-user me-2"></i>Фамилия и Имя:</label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" required>
+                    <!-- Ошибки для поля full_name -->
+                    {% for error in form.full_name.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Номер телефона -->
+                <div class="form-group mb-3">
+                    <label for="phone" class="form-label"><i class="fas fa-phone-alt me-2"></i>Номер телефона:</label>
+                    <div class="text-danger fw-bold mb-2"><i class="fab fa-whatsapp me-2"></i>Номер должен быть зарегистрирован в WhatsApp</div>
+                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="+7 (999) 999-99-99" required>
+                    <!-- Ошибки для поля phone -->
+                    {% for error in form.phone.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Возраст -->
+                <div class="form-group mb-3">
+                    <label for="age" class="form-label"><i class="fas fa-birthday-cake me-2"></i>Возраст:</label>
+                    <input type="number" class="form-control" id="age" name="age" min="16" max="100" required>
+                    <!-- Ошибки для поля age -->
+                    {% for error in form.age.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Пол -->
+                <div class="form-group mb-4">
+                    <label class="form-label d-block"><i class="fas fa-venus-mars me-2"></i>Пол:</label>
+                    <div class="gender-options d-flex">
+                        <div class="form-check form-check-inline me-4">
+                            <input class="form-check-input" type="radio" name="gender" id="male" value="male" required>
+                            <label class="form-check-label" for="male">Мужской</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="gender" id="female" value="female">
+                            <label class="form-check-label" for="female">Женский</label>
+                        </div>
+                    </div>
+                    <!-- Ошибки для поля gender -->
+                    {% for error in form.gender.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Кнопка отправки формы -->
+                <button type="submit" id="submit-registration" class="btn btn-register btn-lg w-100">
+                    <i class="fas fa-check-circle me-2"></i>Участвовать в розыгрыше
+                </button>
+            </form>
+            
+            <!-- Форма поиска своего номера участника -->
+            <div class="mt-4 mb-4">
+                <div class="p-4 bg-light rounded shadow-sm text-dark">
+                    <h4 class="text-center mb-3"><i class="fas fa-search me-2 text-primary"></i>Узнать свой номер участника</h4>
+                    <p class="text-center mb-3">Если вы уже зарегистрированы и забыли свой номер участника, вы можете найти его здесь</p>
+                    
+                    <form id="ticketSearch" class="mb-3">
+
+                        <div class="form-group mb-3">
+                            <label for="search_phone" class="form-label" style="color: black;">
+                                <i class="fas fa-phone-alt me-2"></i>Введите свой номер телефона:
+                            </label>
+                            <input type="tel" class="form-control" id="search_phone" name="search_phone" placeholder="+7 (999) 999-99-99" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-ticket-alt me-2"></i>Найти мой номер
+                        </button>
+                    </form>
+                    
+                    <!-- Место для отображения результата -->
+                    <div id="ticketSearchResult" class="mt-3" style="display: none;">
+                        <p>Ваш номер участника: <span id="participant-number"></span></p>
+                    </div>
+                
+                </div>
+            </div>
+            
+            <!-- Ссылка на предыдущие розыгрыши -->
+            <div class="previous-contests mt-4">
+                <div class="p-3 bg-dark rounded text-center">
+                    <h3 class="mb-3"><i class="fab fa-vk text-primary me-2"></i>Прошлые розыгрыши</h3>
+                    <p>Посмотрите результаты прошлых розыгрышей и истории победителей в нашей группе ВКонтакте</p>
+                    <a href="https://vk.com/clips/playlist/788943776_1" target="_blank" class="btn btn-primary mt-2">
+                        <i class="fab fa-vk me-2"></i>Перейти в группу ВКонтакте
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно с отсчетом -->
+<div class="modal fade" id="redirectModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="redirectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-bottom border-primary">
+                <h5 class="modal-title" id="redirectModalLabel"><i class="fas fa-check-circle text-success me-2"></i>Регистрация успешна!</h5>
+            </div>
+            <div class="modal-body text-center p-4">
+                <div class="mb-4">
+                    <p>Спасибо за регистрацию в розыгрыше PORSCHE CAYENNE!</p>
+                    <div id="participant-number-container" class="my-4 p-4 rounded-lg text-center shadow-lg" style="display: none; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <div class="position-relative">
+                            <div class="position-absolute" style="top: -30px; left: 50%; transform: translateX(-50%);">
+                                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow" style="font-size: 1.1rem;">
+                                    <i class="fas fa-trophy me-2"></i>Поздравляем!
+                                </span>
+                            </div>
+                            <h4 class="text-white mt-3 mb-3 text-uppercase" style="font-weight: 800; letter-spacing: 1px;">
+                                <i class="fas fa-ticket-alt me-2"></i>Ваш номер для участия
+                            </h4>
+                            
+                            <div class="number-display mb-3 mx-auto d-flex align-items-center justify-content-center" 
+                                style="width: 140px; height: 140px; background: rgba(0,0,0,0.2); border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,0.3), inset 0 0 10px rgba(255,255,255,0.2); border: 5px solid #ffffff;">
+                                <span id="participant-number" class="display-3 fw-bolder text-white" style="text-shadow: 0 3px 6px rgba(0,0,0,0.5);">0</span>
+                            </div>
+                            
+                            <div class="mt-4 pt-3 pb-2 px-3 bg-white rounded-3 shadow-sm">
+                                <p class="mb-2 fw-bold text-dark">
+                                    <i class="fas fa-bell me-2 text-warning"></i>
+                                    Не пропустите результаты розыгрыша!
+                                </p>
+                                <p class="mb-3" style="color: #495057;">Подпишитесь на страницу ВКонтакте, чтобы узнать о прямом эфире и итогах розыгрыша</p>
+                                <a href="https://vk.com/kamil_vagidov" target="_blank" class="btn btn-primary px-4 py-2 mb-2" style="background-color: #4a76a8; border-color: #4a76a8;">
+                                    <i class="fab fa-vk me-2"></i>Перейти на страницу ВК
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 rounded-lg text-center shadow-lg mb-4" style="background: linear-gradient(135deg, #128C7E 0%, #075E54 100%);">
+                    <div class="position-relative">
+                        <div class="position-absolute" style="top: -30px; left: 50%; transform: translateX(-50%);">
+                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow" style="font-size: 1.1rem;">
+                                <i class="fas fa-check-circle me-2"></i>Последний шаг
+                            </span>
+                        </div>
+                        
+                        <h4 class="text-white mt-3 mb-3 text-uppercase" style="font-weight: 800; letter-spacing: 1px;">
+                            <i class="fab fa-whatsapp me-2"></i>Присоединитесь к сообществу
+                        </h4>
+                        
+                        <div class="bg-white p-3 rounded-3 mb-4 shadow-sm">
+                            <p class="mb-2 fw-bold" style="color: #075E54;">
+                                <i class="fas fa-info-circle me-2 text-primary"></i>
+                                Для завершения регистрации необходимо присоединиться к сообществу WhatsApp
+                            </p>
+                            <p class="text-danger fw-bold border border-danger rounded p-2 mt-2">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Покинув сообщество вы автоматически исключаетесь с розыгрыша
+                            </p>
+                        </div>
+                        
+                        <div class="countdown-box mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                            style="width: 120px; height: 120px; background: rgba(255,255,255,0.2); border-radius: 50%; box-shadow: 0 8px 20px rgba(0,0,0,0.3), inset 0 0 10px rgba(255,255,255,0.2); border: 5px solid #ffffff;">
+                            <span id="countdown" class="display-3 fw-bolder text-white" style="text-shadow: 0 3px 6px rgba(0,0,0,0.5);">15</span>
+                        </div>
+                        
+                        <p class="text-white mb-4">Переход в группу WhatsApp через <span id="countdown-text" class="fw-bold">15</span> секунд...</p>
+                        
+                        <button id="joinNowBtn" class="btn btn-light btn-lg px-4 py-2 fw-bold shadow-sm" style="color: #075E54;">
+                            <i class="fab fa-whatsapp me-2" style="font-size: 1.2rem;"></i>Присоединиться сейчас
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно с инструкциями по геолокации -->
+<div class="modal fade" id="locationHelpModal" tabindex="-1" aria-labelledby="locationHelpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-bottom border-primary">
+                <h5 class="modal-title" id="locationHelpModalLabel"><i class="fas fa-map-marker-alt text-primary me-2"></i>Как разрешить доступ к местоположению</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-info-circle text-primary" style="font-size: 3rem;"></i>
+                </div>
+                <p>Для участия в розыгрыше необходимо разрешить сайту доступ к вашему местоположению.</p>
+                <p>Когда вы нажмете кнопку "Разрешить определение местоположения", ваш браузер покажет запрос. Нажмите "Разрешить" или "Allow".</p>
+                
+                <div class="bg-dark p-3 rounded mt-3 mb-3 border border-light">
+                    <h6><i class="fas fa-lightbulb text-warning me-2"></i>Если запрос не появляется:</h6>
+                    <ul>
+                        <li>Проверьте настройки браузера и разрешите доступ к геолокации для нашего сайта</li>
+                        <li>В Chrome: нажмите на значок замка возле адреса сайта → Настройки сайта → Местоположение</li>
+                        <li>В Safari: Настройки → Конфиденциальность → Службы геолокации</li>
+                        <li>В Firefox: нажмите на значок замка возле адреса сайта → Разрешения → Местоположение</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" id="tryLocationAgain">Попробовать снова</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.7/dist/inputmask.min.js"></script>
+<script>
+        var phoneMask = new Inputmask('+7 (999) 999-99-99');
+        phoneMask.mask(document.getElementById('phone'));
+        phoneMask.mask(document.getElementById('search_phone'));
+
+        // Обработчик отправки формы поиска
+        document.getElementById('ticketSearch').addEventListener('submit', function(e) {
+            e.preventDefault();  // Останавливаем стандартную отправку формы
+    
+            var phone = document.getElementById('search_phone').value;
+            
+            // Получаем CSRF-токен из мета-тега
+            var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+            // Отправляем запрос с CSRF-токеном
+            fetch('/find_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ phone: phone }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка сети или сервера');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('ticketSearchResult').style.display = 'block';
+                    document.getElementById('participant-number').textContent = data.participant_id;
+                } else {
+                    alert(data.message || 'Пользователь с таким номером не найден!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при поиске пользователя. Пожалуйста, попробуйте снова.');
+            });
+        });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const findUserForm = document.getElementById('find-user-form');
+    if (findUserForm) {
+        findUserForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('phone').value;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch('/find_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    phone: phone
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Ваш номерок участия: ' + data.participant_id);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при поиске пользователя');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

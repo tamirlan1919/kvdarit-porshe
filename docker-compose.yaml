@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+    volumes:
+      - .:/app  # Монтируем весь проект в /app
+      - ./data:/app/data  # Монтируем каталог для SQLite базы данных
+    environment:
+      - FLASK_APP=wsgi.py
+      - FLASK_RUN_HOST=0.0.0.0
