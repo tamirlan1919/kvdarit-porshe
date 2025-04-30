@@ -10,6 +10,8 @@ from app.routes.admin import admin_bp
 from app.database import models 
 from app.database.engine import db
 from flask_wtf.csrf import CSRFProtect, generate_csrf
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 
 login_manager = LoginManager()
 login_manager.login_view = 'login.login'  # Исправляем имя endpoint'а
@@ -21,7 +23,9 @@ def load_user(user_id):
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config) 
-    
+        # Доверяем одному прокси-слою (Render), чтобы Flask брал клиентский IP из X-Forwarded-For
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+
     # Инициализация Flask-Login
     login_manager.init_app(app)
 

@@ -27,9 +27,6 @@ def process_registration(form, city, region, country):
         # Сохраняем участника в базе данных
         db.session.add(user)
         db.session.commit()
-        
-        # Возвращаем объект участника
-        return user
     except Exception as e:
         # Логирование ошибки
         print(f"Error processing registration: {e}")

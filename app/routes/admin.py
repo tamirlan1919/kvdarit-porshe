@@ -56,11 +56,11 @@ def download_male_csv():
     writer = csv.writer(output)
     
     # Записываем заголовки
-    writer.writerow(['Имя', 'Телефон'])
+    writer.writerow(['Имя', 'Телефон', 'Город'])
     
     # Записываем данные
     for participant in male_participants:
-        writer.writerow([participant.full_name, participant.phone])
+        writer.writerow([participant.full_name, participant.phone, participant.city])
     
     # Подготавливаем файл для отправки
     output.seek(0)
@@ -89,11 +89,11 @@ def download_female_csv():
     writer = csv.writer(output)
     
     # Записываем заголовки
-    writer.writerow(['Имя', 'Телефон'])
+    writer.writerow(['Имя', 'Телефон', 'Город'])
     
     # Записываем данные
     for participant in female_participants:
-        writer.writerow([participant.full_name, participant.phone])
+        writer.writerow([participant.full_name, participant.phone, participant.city])
     
     # Подготавливаем файл для отправки
     output.seek(0)
