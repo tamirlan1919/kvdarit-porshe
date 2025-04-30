@@ -40,8 +40,7 @@ def is_in_city(city):
     """
     allowed_cities = [
         'Makhachkala', 'Махачкала',
-        'Kaspiysk', 'Каспийск',
-        'Grozny', 'Грозный'
+        'Kaspiysk', 'Каспийск'
     ]
     
     if city in allowed_cities:
