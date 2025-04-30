@@ -129,7 +129,6 @@
                     <p class="text-center mb-3">Если вы уже зарегистрированы и забыли свой номер участника, вы можете найти его здесь</p>
                     
                     <form id="ticketSearch" class="mb-3">
-
                         <div class="form-group mb-3">
                             <label for="search_phone" class="form-label" style="color: black;">
                                 <i class="fas fa-phone-alt me-2"></i>Введите свой номер телефона:
@@ -146,7 +145,6 @@
                     <div id="ticketSearchResult" class="mt-3" style="display: none;">
                         <p>Ваш номер участника: <span id="participant-number"></span></p>
                     </div>
-                
                 </div>
             </div>
             
@@ -280,81 +278,46 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.7/dist/inputmask.min.js"></script>
 <script>
-        var phoneMask = new Inputmask('+7 (999) 999-99-99');
-        phoneMask.mask(document.getElementById('phone'));
-        phoneMask.mask(document.getElementById('search_phone'));
+    var phoneMask = new Inputmask('+7 (999) 999-99-99');
+    phoneMask.mask(document.getElementById('phone'));
+    phoneMask.mask(document.getElementById('search_phone'));
 
-        // Обработчик отправки формы поиска
-        document.getElementById('ticketSearch').addEventListener('submit', function(e) {
-            e.preventDefault();  // Останавливаем стандартную отправку формы
-    
-            var phone = document.getElementById('search_phone').value;
-            
-            // Получаем CSRF-токен из мета-тега
-            var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    
-            // Отправляем запрос с CSRF-токеном
-            fetch('/find_user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({ phone: phone }),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Ошибка сети или сервера');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('ticketSearchResult').style.display = 'block';
-                    document.getElementById('participant-number').textContent = data.participant_id;
-                } else {
-                    alert(data.message || 'Пользователь с таким номером не найден!');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Произошла ошибка при поиске пользователя. Пожалуйста, попробуйте снова.');
-            });
-        });
+    // Обработчик отправки формы поиска
+    document.getElementById('ticketSearch').addEventListener('submit', function(e) {
+        e.preventDefault();  // Останавливаем стандартную отправку формы
 
-document.addEventListener('DOMContentLoaded', function() {
-    const findUserForm = document.getElementById('find-user-form');
-    if (findUserForm) {
-        findUserForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const phone = document.getElementById('phone').value;
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            
-            fetch('/find_user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
-                    phone: phone
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Ваш номерок участия: ' + data.participant_id);
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Произошла ошибка при поиске пользователя');
-            });
+        var phone = document.getElementById('search_phone').value;
+        
+        // Получаем CSRF-токен из мета-тега
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Отправляем запрос с CSRF-токеном
+        fetch('/find_user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ phone: phone }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка сети или сервера');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                document.getElementById('ticketSearchResult').style.display = 'block';
+                document.getElementById('participant-number').textContent = data.participant_id;
+            } else {
+                alert(data.message || 'Пользователь с таким номером не найден!');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при поиске пользователя. Пожалуйста, попробуйте снова.');
         });
-    }
-});
+    });
 </script>
 {% endblock %}
