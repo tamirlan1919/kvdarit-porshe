@@ -11,3 +11,5 @@ class RegistrationForm(FlaskForm):
                         validators=[DataRequired()])
     age = IntegerField('Возраст', validators=[DataRequired(), NumberRange(min=16, max=100)])
     gender = RadioField('Пол', choices=[('male', 'Мужской'), ('female', 'Женский')], validators=[DataRequired()])
+    latitude = StringField('Latitude', default='', render_kw={'type': 'hidden'})
+    longitude = StringField('Longitude', default='', render_kw={'type': 'hidden'})
