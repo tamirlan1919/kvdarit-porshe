@@ -39,7 +39,7 @@ def index():
                 return render_template('index.html', form=form, is_registered=is_registered)
 
             city_lower = city.lower().strip()
-            if city_lower in ["махачкала", "каспийск", 'грозный']:
+            if city_lower in ["махачкала", "каспийск"]:
                 if check_user_in_table(form.phone.data):
                     is_registered = '#alreadyRegisteredModal'
                     print("Пользователь уже зарегистрирован, показываем модальное окно alreadyRegisteredModal")
@@ -48,7 +48,7 @@ def index():
                     is_registered = '#registrationSuccessModal'
                     print("Регистрация успешна, показываем модальное окно registrationSuccessModal")
             else:
-                flash("Регистрация возможна только в Махачкале, Каспийске или Грозном.", "error")
+                flash("Регистрация возможна только в Махачкале или Каспийске.", "error")
                 return render_template('index.html', form=form, is_registered=is_registered)
     except DatabaseError as e:
         logging.error(f"Ошибка базы данных: {e}")
