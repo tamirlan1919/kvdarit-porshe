@@ -114,7 +114,6 @@ def format_full_address(address):
         return None
 
     components = [
-        address.get('road'),  # Улица
         address.get('suburb'),  # Микрорайон
         address.get('city') or address.get('town') or address.get('village'),  # Город
         address.get('state_district'),  # Район
