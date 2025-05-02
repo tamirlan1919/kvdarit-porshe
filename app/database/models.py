@@ -11,7 +11,7 @@ class Participant(db.Model):
     gender = db.Column(db.String(10), nullable=False)
     registration_time = db.Column(db.DateTime, nullable=False)
     ip_address = db.Column(db.String(15), nullable=False)
-    city = db.Column(db.String(100), nullable=False)
+    city = db.Column(db.String(500), nullable=False)
     region = db.Column(db.String(100), nullable=False)
     country = db.Column(db.String(100), nullable=False)
 
