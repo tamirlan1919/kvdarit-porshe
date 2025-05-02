@@ -39,7 +39,7 @@ def index():
                 return render_template('index.html', form=form, is_registered=is_registered)
 
             city_lower = city.lower().strip()
-            if city_lower in ["махачкала", "каспийск", 'манаскент']:
+            if city_lower in ["махачкала", "каспийск"]:
                 if check_user_in_table(form.phone.data):
                     is_registered = '#alreadyRegisteredModal'
                     print("Пользователь уже зарегистрирован, показываем модальное окно alreadyRegisteredModal")
