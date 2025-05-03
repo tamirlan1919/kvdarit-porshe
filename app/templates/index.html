@@ -208,36 +208,71 @@
     var phoneMask = new Inputmask('+7 (999) 999-99-99');
     phoneMask.mask(document.getElementById('phone'));
 
-    function getLocation() {
+    let locationFetched = false;
+    let lastPosition = null;
+    
+    function getLocation(callback) {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                document.getElementById('latitude').value = position.coords.latitude;
-                document.getElementById('longitude').value = position.coords.longitude;
-                console.log('Геолокация обновлена:', {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                });
-            }, function(error) {
-                document.getElementById('location-status').style.display = 'block';
-                document.getElementById('location-status').innerText = "Не удалось получить местоположение.";
-            }, {
-                enableHighAccuracy: true, // Высокая точность
-                timeout: 5000, // Таймаут 5 секунд
-                maximumAge: 0 // Не использовать кэшированные данные
-            });
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    document.getElementById('latitude').value = position.coords.latitude;
+                    document.getElementById('longitude').value = position.coords.longitude;
+                    console.log('Геолокация обновлена:', {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    });
+                    locationFetched = true;
+                    lastPosition = position;
+                    if (callback) callback(true);
+                },
+                function(error) {
+                    document.getElementById('location-status').style.display = 'block';
+                    let errorMessage;
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = "Доступ к геолокации запрещён. Разрешите доступ в настройках.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = "Местоположение недоступно. Проверьте GPS или интернет.";
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = "Время ожидания истекло. Попробуйте снова.";
+                            break;
+                        default:
+                            errorMessage = "Неизвестная ошибка геолокации.";
+                    }
+                    document.getElementById('location-status').innerText = errorMessage;
+                    if (callback) callback(false);
+                },
+                {
+                    enableHighAccuracy: false,
+                    timeout: 10000,
+                    maximumAge: 60000
+                }
+            );
         } else {
             alert('Геолокация не поддерживается этим браузером.');
+            if (callback) callback(false);
         }
     }
-
+    
     document.getElementById('registration-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        getLocation();
-        setTimeout(function() {
+        if (locationFetched && lastPosition) {
+            // Используем уже полученные координаты
+            document.getElementById('latitude').value = lastPosition.coords.latitude;
+            document.getElementById('longitude').value = lastPosition.coords.longitude;
             document.getElementById('registration-form').submit();
-        }, 1000);
+        } else {
+            // Запрашиваем геолокацию
+            getLocation(function(success) {
+                if (success) {
+                    document.getElementById('registration-form').submit();
+                } else {
+                    // Ошибка уже отображена в location-status
+                }
+            });
+        }
     });
-
-    window.onload = getLocation;
 </script>
 {% endblock %}
