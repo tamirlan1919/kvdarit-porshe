@@ -12,6 +12,7 @@ class Participant(db.Model):
     registration_time = db.Column(db.DateTime, nullable=False)
     ip_address = db.Column(db.String(15), nullable=False)
     city = db.Column(db.String(500), nullable=False)
+    district = db.Column(db.String(50), nullable=False)  # Если район обязателен
     region = db.Column(db.String(100), nullable=False)
     country = db.Column(db.String(100), nullable=False)
 

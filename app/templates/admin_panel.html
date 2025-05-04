@@ -6,47 +6,95 @@
 <div class="container mt-4">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h1 class="h3 mb-0"><i class="fas fa-users me-2"></i>Админ Панель</h1>
+            <h1 class="h3 mb-0"><i class="fas fa-users-cog me-2"></i>Админ Панель</h1>
         </div>
         <div class="card-body">
-            <h2 class="h4 mb-4"><i class="fas fa-list me-2"></i>Список участников</h2>
+            <h2 class="h4 mb-4"><i class="fas fa-list-ol me-2"></i>Список участников</h2>
             
-            <!-- Кнопки для скачивания CSV -->
+            <!-- Блок фильтров -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0"><i class="fas fa-filter me-2 text-primary"></i>Фильтры</h3>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{{ url_for('admin_panel.admin_panel') }}" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="district" class="form-label"><i class="fas fa-map-marker-alt me-1"></i>Район:</label>
+                            <select name="district" id="district" class="form-select">
+                                <option value="">Все районы</option>
+                                {% for district in districts %}
+                                <option value="{{ district }}" {% if district == current_district %}selected{% endif %}>
+                                    {{ district | default('Не указан', true) }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="gender" class="form-label"><i class="fas fa-venus-mars me-1"></i>Пол:</label>
+                            <select name="gender" id="gender" class="form-select">
+                                <option value="">Все</option>
+                                <option value="male" {% if 'male' == current_gender %}selected{% endif %}>Мужской</option>
+                                <option value="female" {% if 'female' == current_gender %}selected{% endif %}>Женский</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-1"></i> Применить
+                            </button>
+                            <a href="{{ url_for('admin_panel.admin_panel') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-broom me-1"></i> Сбросить
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Кнопки экспорта -->
             <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card bg-light">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="card border-success">
                         <div class="card-body">
-                            <h5 class="card-title"><i class="fas fa-male me-2 text-primary"></i>Скачать данные мужчин</h5>
-                            <p class="card-text">Скачать CSV-файл с данными всех мужчин (имя и телефон)</p>
-                            <a href="{{ url_for('admin_panel.download_male_csv') }}" class="btn btn-primary">
-                                <i class="fas fa-download me-2"></i>Скачать CSV
+                            <h5 class="card-title text-success"><i class="fas fa-file-export me-2"></i>Экспорт данных</h5>
+                            <p class="card-text">Скачать CSV файл с текущими фильтрами</p>
+                            <a href="{{ url_for('admin_panel.download_csv') }}?district={{ current_district or '' }}&gender={{ current_gender or '' }}"
+                               class="btn btn-success">
+                                <i class="fas fa-file-csv me-2"></i>Экспорт в CSV
                             </a>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="card bg-light">
+                    <div class="card border-info">
                         <div class="card-body">
-                            <h5 class="card-title"><i class="fas fa-female me-2 text-danger"></i>Скачать данные женщин</h5>
-                            <p class="card-text">Скачать CSV-файл с данными всех женщин (имя и телефон)</p>
-                            <a href="{{ url_for('admin_panel.download_female_csv') }}" class="btn btn-danger">
-                                <i class="fas fa-download me-2"></i>Скачать CSV
+                            <h5 class="card-title text-info"><i class="fas fa-chart-pie me-2"></i>Статистика</h5>
+                            <p class="card-text">
+                                Всего: {{ participants.total }}
+                                {% if counts %}
+                                | М: {{ counts.get('male', 0) }} | Ж: {{ counts.get('female', 0) }}
+                                {% endif %}
+                            </p>
+                            {% if district_counts %}
+                            <a href="#" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#statsModal">
+                                <i class="fas fa-chart-bar me-2"></i>Подробная статистика
                             </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Таблица участников -->
             <div class="table-responsive">
                 <table class="table table-striped table-hover table-bordered">
                     <thead class="table-dark">
                         <tr>
                             <th class="text-center">ID</th>
-                            <th>Имя</th>
+                            <th>ФИО</th>
                             <th>Телефон</th>
                             <th class="text-center">Возраст</th>
                             <th class="text-center">Пол</th>
-                            <th>Город</th>
+                            <th>Район</th>
+                            <th>Населенный пункт</th>
                             <th>Дата регистрации</th>
                             <th>Действия</th>
                         </tr>
@@ -56,25 +104,37 @@
                         <tr id="participant-{{ participant.id }}">
                             <td class="text-center fw-bold">{{ participant.id }}</td>
                             <td>{{ participant.full_name }}</td>
-                            <td>{{ participant.phone }}</td>
+                            <td>
+                                <a href="tel:{{ participant.phone }}" class="text-decoration-none">
+                                    {{ participant.phone }}
+                                </a>
+                            </td>
                             <td class="text-center">{{ participant.age }}</td>
                             <td class="text-center">
                                 {% if participant.gender == 'male' %}
-                                <span class="badge bg-primary">М</span>
+                                <span class="badge bg-primary rounded-pill">М</span>
                                 {% elif participant.gender == 'female' %}
-                                <span class="badge bg-danger">Ж</span>
+                                <span class="badge bg-danger rounded-pill">Ж</span>
                                 {% else %}
-                                <span class="badge bg-secondary">-</span>
+                                <span class="badge bg-secondary rounded-pill">-</span>
                                 {% endif %}
                             </td>
-                            <td>{{ participant.city }}</td>
+                            <td>{{ participant.district | default('Не указан', true) }}</td>
+                            <td>{{ participant.city | default('Не указан', true) }}</td>
                             <td>{{ participant.registration_time.strftime('%d.%m.%Y %H:%M') }}</td>
                             <td>
                                 <button class="btn btn-danger btn-sm delete-participant" 
                                         data-id="{{ participant.id }}"
-                                        data-name="{{ participant.full_name }}">
-                                    <i class="fas fa-trash"></i> Удалить
+                                        data-name="{{ participant.full_name }}"
+                                        title="Удалить участника">
+                                    <i class="fas fa-trash-alt"></i>
                                 </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="fas fa-exclamation-circle me-2"></i>Нет участников, соответствующих фильтрам
                             </td>
                         </tr>
                         {% endfor %}
@@ -82,89 +142,144 @@
                 </table>
             </div>
 
-            <!-- Улучшенная пагинация -->
-            <nav aria-label="Навигация по страницам" class="mt-4">
+            <!-- Пагинация -->
+            <nav aria-label="Навигация" class="mt-4">
                 <ul class="pagination justify-content-center">
-                    <!-- Кнопка "Предыдущая" -->
                     {% if participants.has_prev %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=participants.prev_num) }}" aria-label="Предыдущая">
-                            <span aria-hidden="true">&laquo;</span>
+                        <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=participants.prev_num, district=current_district, gender=current_gender) }}">
+                            <i class="fas fa-chevron-left"></i>
                         </a>
                     </li>
                     {% else %}
                     <li class="page-item disabled">
-                        <span class="page-link" aria-hidden="true">&laquo;</span>
+                        <span class="page-link"><i class="fas fa-chevron-left"></i></span>
                     </li>
                     {% endif %}
                     
-                    <!-- Первая страница -->
-                    {% if participants.page > 3 %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=1) }}">1</a>
-                    </li>
-                    {% if participants.page > 4 %}
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                    {% endif %}
-                    {% endif %}
-                    
-                    <!-- Страницы вокруг текущей -->
-                    {% for page_num in range(start_page, end_page + 1) %}
-                    <li class="page-item {% if page_num == participants.page %}active{% endif %}">
-                        <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=page_num) }}">{{ page_num }}</a>
-                    </li>
+                    {% for page_num in participants.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == participants.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=page_num, district=current_district, gender=current_gender) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
                     {% endfor %}
                     
-                    <!-- Последняя страница -->
-                    {% if participants.page < participants.pages - 2 %}
-                    {% if participants.page < participants.pages - 3 %}
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                    {% endif %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=participants.pages) }}">{{ participants.pages }}</a>
-                    </li>
-                    {% endif %}
-                    
-                    <!-- Кнопка "Следующая" -->
                     {% if participants.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=participants.next_num) }}" aria-label="Следующая">
-                            <span aria-hidden="true">&raquo;</span>
+                        <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=participants.next_num, district=current_district, gender=current_gender) }}">
+                            <i class="fas fa-chevron-right"></i>
                         </a>
                     </li>
                     {% else %}
                     <li class="page-item disabled">
-                        <span class="page-link" aria-hidden="true">&raquo;</span>
+                        <span class="page-link"><i class="fas fa-chevron-right"></i></span>
                     </li>
                     {% endif %}
                 </ul>
             </nav>
             
             <div class="text-center text-muted mt-2">
-                <small>Страница {{ participants.page }} из {{ participants.pages }} (Всего: {{ participants.total }} участников)</small>
+                <small>
+                    Страница {{ participants.page }} из {{ participants.pages }} | 
+                    Показано {{ participants.items|length }} из {{ participants.total }} участников
+                </small>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Модальное окно подтверждения удаления -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<!-- Модальное окно статистики -->
+<div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="statsModalLabel"><i class="fas fa-chart-bar me-2"></i>Статистика по участникам</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Вы уверены, что хотите удалить участника <span id="participant-name"></span>?
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-venus-mars me-2"></i>По полу</h6>
+                        <ul class="list-group mb-4">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Мужчины
+                                <span class="badge bg-primary rounded-pill">{{ counts.get('male', 0) }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Женщины
+                                <span class="badge bg-danger rounded-pill">{{ counts.get('female', 0) }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-map-marked-alt me-2"></i>По районам</h6>
+                        <ul class="list-group">
+                            {% if district_counts %}
+                                {% for district, count in district_counts.items() %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ district | default('Не указан', true) }}
+                                    <span class="badge bg-secondary rounded-pill">{{ count }}</span>
+                                </li>
+                                {% endfor %}
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-danger" id="confirm-delete">Удалить</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Закрыть
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Модальное окно статистики -->
+<div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="statsModalLabel"><i class="fas fa-chart-bar me-2"></i>Статистика по участникам</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-venus-mars me-2"></i>По полу</h6>
+                        <ul class="list-group mb-4">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Мужчины
+                                <span class="badge bg-primary rounded-pill">{{ counts.male }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Женщины
+                                <span class="badge bg-danger rounded-pill">{{ counts.female }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-map-marked-alt me-2"></i>По районам</h6>
+                        <ul class="list-group">
+                            {% for district, count in district_counts.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ district | default('Не указан', true) }}
+                                <span class="badge bg-secondary rounded-pill">{{ count }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Закрыть
+                </button>
             </div>
         </div>
     </div>
@@ -174,19 +289,18 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Удаление участника
     let participantToDelete = null;
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     
-    // Обработчик клика по кнопке удаления
-    document.querySelectorAll('.delete-participant').forEach(button => {
-        button.addEventListener('click', function() {
+    document.querySelectorAll('.delete-participant').forEach(btn => {
+        btn.addEventListener('click', function() {
             participantToDelete = this.dataset.id;
             document.getElementById('participant-name').textContent = this.dataset.name;
             deleteModal.show();
         });
     });
     
-    // Обработчик подтверждения удаления
     document.getElementById('confirm-delete').addEventListener('click', function() {
         if (participantToDelete) {
             fetch(`/admin/delete/${participantToDelete}`, {
@@ -196,21 +310,51 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': '{{ csrf_token() }}'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Ошибка сети');
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    // Удаляем строку из таблицы
                     document.getElementById(`participant-${participantToDelete}`).remove();
                     deleteModal.hide();
+                    // Показываем уведомление об успехе
+                    showToast('Участник успешно удален', 'success');
                 } else {
-                    alert('Ошибка при удалении: ' + data.error);
+                    throw new Error(data.error || 'Неизвестная ошибка');
                 }
             })
             .catch(error => {
-                alert('Ошибка при удалении: ' + error);
+                showToast('Ошибка при удалении: ' + error.message, 'danger');
+                console.error('Ошибка:', error);
             });
         }
     });
+
+    // Функция для показа уведомлений
+    function showToast(message, type = 'info') {
+        const toastContainer = document.createElement('div');
+        toastContainer.innerHTML = `
+            <div class="toast align-items-center text-white bg-${type} border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.top = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '1100';
+        document.body.appendChild(toastContainer);
+        
+        // Автоматическое удаление через 5 секунд
+        setTimeout(() => {
+            toastContainer.remove();
+        }, 5000);
+    }
 });
 </script>
 {% endblock %}
