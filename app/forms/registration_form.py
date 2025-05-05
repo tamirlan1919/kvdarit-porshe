@@ -11,14 +11,15 @@ class RegistrationForm(FlaskForm):
                         validators=[DataRequired()])
     age = IntegerField('Возраст', validators=[DataRequired(), NumberRange(min=16, max=100)])
     gender = RadioField('Пол', choices=[('male', 'Мужской'), ('female', 'Женский')], validators=[DataRequired()])
-    district = SelectField('Район проживания:', 
-                         choices=[
-                             ('', 'Выберите район'),
-                             ('Хасаюртовский район', 'Хасаюртовский район'),
-                             ('Кизлярский район', 'Кизлярский район'),
-                             ('Бабаюртовский район', 'Бабаюртовский район'),
-                             ('Ахматовский район', 'Ахматовский район')
-                         ],
-                         validators=[DataRequired()])
+    district = SelectField(
+        'Район проживания:', 
+        choices=[
+            ('', 'Выберите район'),
+            ('Хасавюрт + район', 'Хасавюрт + район'),  # Значение для сохранения в БД: "Хасавюрт + район"
+            ('Кизляр + район', 'Кизляр + район'),      # Значение для сохранения в БД: "Кизляр + район"
+            ('Бабаюртовский район', 'Бабаюртовский район')  # Без изменений
+        ],
+        validators=[DataRequired(message="Выберите район")]
+    )
     latitude = StringField('Latitude', default='', render_kw={'type': 'hidden'})
     longitude = StringField('Longitude', default='', render_kw={'type': 'hidden'})
