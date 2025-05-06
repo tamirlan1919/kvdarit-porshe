@@ -22,6 +22,7 @@ def normalize_district_name(location):
         return None
     
     location = location.lower().strip()
+    print(location)
     for normalized_name, aliases in STRICT_ALLOWED_DISTRICTS.items():
         if location in aliases:
             return normalized_name
@@ -41,9 +42,8 @@ def index():
         if form.validate_on_submit():
             # 1. Проверка выбранного района в форме
             selected_district = form.district.data
-            if not is_location_allowed(selected_district):
-                flash("Регистрация доступна только для Хасавюрта, Кизляра и Бабаюрта!", "error")
-                return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
+            print(selected_district)
+
 
             # 2. Обязательная проверка геолокации
             if not form.latitude.data or not form.longitude.data:
