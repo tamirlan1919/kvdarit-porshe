@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from app.forms.registration_form import RegistrationForm
 from app.services.registration_service import process_registration, check_user_in_table
 from app.database.engine import db
+from app.database.models import CommunityLink  # Добавляем импорт
 from sqlalchemy.exc import DatabaseError
 import requests
 
@@ -34,6 +35,7 @@ def is_location_allowed(location):
 def index():
     form = RegistrationForm()
     is_registered = None
+    community_link = None  # Добавляем переменную для ссылки
     
     try:
         if form.validate_on_submit():
@@ -41,29 +43,29 @@ def index():
             selected_district = form.district.data
             if not is_location_allowed(selected_district):
                 flash("Регистрация доступна только для Хасавюрта, Кизляра и Бабаюрта!", "error")
-                return render_template('index.html', form=form, is_registered=is_registered)
+                return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
             # 2. Обязательная проверка геолокации
             if not form.latitude.data or not form.longitude.data:
                 flash("Не удалось определить ваше местоположение. Включите геолокацию!", "error")
-                return render_template('index.html', form=form, is_registered=is_registered)
+                return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
                 
             address = get_full_address_by_coordinates(form.latitude.data, form.longitude.data)
             if not address:
                 flash("Ошибка проверки адреса. Попробуйте позже.", "error")
-                return render_template('index.html', form=form, is_registered=is_registered)
+                return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
             # 3. Извлекаем район из геоданных
             geo_district = extract_district_from_address(address)
             if not geo_district:
                 flash("Не удалось определить ваш район. Попробуйте еще раз.", "error")
-                return render_template('index.html', form=form, is_registered=is_registered)
+                return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
             # 4. Проверяем что район из геолокации разрешен
             if not is_location_allowed(geo_district):
                 flash(f"Регистрация недоступна для вашего района ({geo_district})!", "error")
                 logging.warning(f"Попытка регистрации из запрещенного района: {geo_district}")
-                return render_template('index.html', form=form, is_registered=is_registered)
+                return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
             # 5. Проверяем соответствие выбранного района и геолокации
             normalized_selected = normalize_district_name(selected_district)
@@ -71,9 +73,13 @@ def index():
             
             if normalized_selected != normalized_geo:
                 flash("Выбранный район не соответствует вашему местоположению!", "error")
-                return render_template('index.html', form=form, is_registered=is_registered)
+                return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
-            # 6. Проверяем и сохраняем данные
+            # 6. Получаем ссылку на сообщество для района
+            community_link_obj = CommunityLink.query.filter_by(district=normalized_selected).first()
+            community_link = community_link_obj.link if community_link_obj else 'https://chat.whatsapp.com/default'
+
+            # 7. Проверяем и сохраняем данные
             if check_user_in_table(form.phone.data):
                 is_registered = '#alreadyRegisteredModal'
             else:
@@ -93,7 +99,7 @@ def index():
         logging.error(f"Общая ошибка при обработке формы: {e}")
         flash("Ошибка сервера. Попробуйте позже.", "error")
 
-    return render_template('index.html', form=form, is_registered=is_registered)
+    return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
 def get_full_address_by_coordinates(latitude, longitude):
     url = f'https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json&addressdetails=1'

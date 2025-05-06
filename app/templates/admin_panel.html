@@ -83,6 +83,50 @@
                 </div>
             </div>
 
+            <!-- Новый раздел: Управление ссылками на сообщества -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-light">
+                    <h3 class="h5 mb-0"><i class="fas fa-link me-2 text-primary"></i>Управление ссылками на сообщества</h3>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('admin_panel.add_community_link') }}" class="btn btn-success mb-3">
+                        <i class="fas fa-plus me-2"></i>Добавить ссылку
+                    </a>
+                    <table class="table table-striped table-hover table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Район</th>
+                                <th>Ссылка</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for link in community_links %}
+                            <tr id="link-{{ link.id }}">
+                                <td>{{ link.district }}</td>
+                                <td><a href="{{ link.link }}" target="_blank">{{ link.link }}</a></td>
+                                <td>
+                                    <a href="{{ url_for('admin_panel.edit_community_link', id=link.id) }}" class="btn btn-primary btn-sm" title="Редактировать">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-danger btn-sm delete-link" data-id="{{ link.id }}" data-district="{{ link.district }}" title="Удалить">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    <i class="fas fa-exclamation-circle me-2"></i>Ссылки не добавлены
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+         
             <!-- Таблица участников -->
             <div class="table-responsive">
                 <table class="table table-striped table-hover table-bordered">
@@ -157,16 +201,12 @@
                     </li>
                     {% endif %}
                     
-                    {% for page_num in participants.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                        {% if page_num %}
-                            <li class="page-item {% if page_num == participants.page %}active{% endif %}">
-                                <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=page_num, district=current_district, gender=current_gender) }}">
-                                    {{ page_num }}
-                                </a>
-                            </li>
-                        {% else %}
-                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                        {% endif %}
+                    {% for page_num in range(start_page, end_page + 1) %}
+                        <li class="page-item {% if page_num == participants.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=page_num, district=current_district, gender=current_gender) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
                     {% endfor %}
                     
                     {% if participants.has_next %}
@@ -193,7 +233,44 @@
     </div>
 </div>
 
-<!-- Модальное окно подтверждения удаления -->
+<!-- Модальное окно подтверждения удаления участника -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить участника <strong id="participant-name"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete">Удалить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для подтверждения удаления ссылки -->
+<div class="modal fade" id="deleteLinkModal" tabindex="-1" aria-labelledby="deleteLinkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteLinkModalLabel">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить ссылку для района <strong id="link-district"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-link">Удалить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Модальное окно статистики -->
 <div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -240,50 +317,6 @@
         </div>
     </div>
 </div>
-<!-- Модальное окно статистики -->
-<div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="statsModalLabel"><i class="fas fa-chart-bar me-2"></i>Статистика по участникам</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6><i class="fas fa-venus-mars me-2"></i>По полу</h6>
-                        <ul class="list-group mb-4">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Мужчины
-                                <span class="badge bg-primary rounded-pill">{{ counts.male }}</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Женщины
-                                <span class="badge bg-danger rounded-pill">{{ counts.female }}</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <h6><i class="fas fa-map-marked-alt me-2"></i>По районам</h6>
-                        <ul class="list-group">
-                            {% for district, count in district_counts.items() %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ district | default('Не указан', true) }}
-                                <span class="badge bg-secondary rounded-pill">{{ count }}</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i> Закрыть
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
@@ -318,8 +351,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     document.getElementById(`participant-${participantToDelete}`).remove();
                     deleteModal.hide();
-                    // Показываем уведомление об успехе
                     showToast('Участник успешно удален', 'success');
+                } else {
+                    throw new Error(data.error || 'Неизвестная ошибка');
+                }
+            })
+            .catch(error => {
+                showToast('Ошибка при удалении: ' + error.message, 'danger');
+                console.error('Ошибка:', error);
+            });
+        }
+    });
+
+    // Удаление ссылки
+    let linkToDelete = null;
+    const deleteLinkModal = new bootstrap.Modal(document.getElementById('deleteLinkModal'));
+    
+    document.querySelectorAll('.delete-link').forEach(btn => {
+        btn.addEventListener('click', function() {
+            linkToDelete = this.dataset.id;
+            document.getElementById('link-district').textContent = this.dataset.district;
+            deleteLinkModal.show();
+        });
+    });
+    
+    document.getElementById('confirm-delete-link').addEventListener('click', function() {
+        if (linkToDelete) {
+            fetch(`/admin/community_links/delete/${linkToDelete}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Ошибка сети');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`link-${linkToDelete}`).remove();
+                    deleteLinkModal.hide();
+                    showToast('Ссылка успешно удалена', 'success');
                 } else {
                     throw new Error(data.error || 'Неизвестная ошибка');
                 }
