@@ -11,10 +11,31 @@ main_bp = Blueprint('main', __name__)
 
 # Строгий белый список разрешенных районов (только точные совпадения)
 STRICT_ALLOWED_DISTRICTS = {
-    'Хасавюрт + район': ['хасавюрт', 'хасавюртовский район'],
-    'Кизляр + район': ['кизляр', 'кизлярский район'],
-    'Бабаюртовский район': ['бабаюрт', 'бабаюртовский район'],
+    'Хасавюрт + район': [
+        'аджимажагатюрт', 'адильотар', 'акбулатюрт', 'аксай', 'байрам', 'байрамаул', 'бамматюрт',
+        'баташюрт', 'батаюрт', 'борагангечув', 'генжеаул', 'гоксув', 'дзержинское', 'кадыротар',
+        'казмааул', 'кандаураул', 'карланюрт', 'кемсиюрт', 'кокрек', 'костек', 'куруш', 'лаклакюрт',
+        'петраковское', 'покровское', 'первомайское', 'садовое', 'симсир', 'сиух', 'советское',
+        'солнечное', 'сулевкент', 'темираул', 'тотурбийкала', 'тукита', 'тутлар', 'умаротар', 'умашаул',
+        'хамавюрт', 'цияб-ичичали', 'чагаротар', 'шулькевич', 'эндирей', 'новогагатли', 'новосельское',
+        'нурадилово', 'османюрт', 'могилевское', 'экажево', 'хасавюрт'
+    ],
+    'Кизляр + район': [
+        'аверьяновка', 'александрийская', 'амишта', 'большебредихинское', 'большезадоевское',
+        'большекозыревское', 'бондареновское', 'брянск', 'бурумбай', 'виноградное', 'вперёд',
+        'выше-таловка', 'грузинское', 'дагестанское', 'дальнее', 'ефимовка', 'заречное', 'имени жданова',
+        'имени карла маркса', 'имени кирова', 'имени магомеда гаджиева', 'имени шаумяна', 'кардоновка',
+        'крайновка', 'краснооктябрьское', 'курдюковское', 'кохановское', 'кизляр', 'черняевка'
+    ],
+    
+    'Бабаюртовский район': [
+        'адиль-янгиюрт', 'алимпашаюрт', 'бабаюрт', 'геметюбе', 'герменчик', 'львовский № 1',
+        'люксембург', 'мужукай', 'новая коса', 'новокаре', 'оразгулаул', 'советское', 'тавлу-отар',
+        'тамазатюбе', 'татаюрт', 'туршунай', 'уцмиюрт', 'хамаматюрт', 'хасанай', 'чанкаюрт',
+        'шахбулатотар', 'янгылбай'
+    ]
 }
+
 
 # Нормализация названий районов
 def normalize_district_name(location):
@@ -26,6 +47,7 @@ def normalize_district_name(location):
         if location in aliases:
             return normalized_name
     return None
+
 
 # Проверка что район точно разрешен
 def is_location_allowed(location):
@@ -52,20 +74,24 @@ def index():
                 return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
             # 3. Извлекаем район из геоданных
-            geo_district = extract_district_from_address(address)
-            if not geo_district:
+            geo_locality = extract_locality_from_address(address)
+            print(f"geo_locality: {geo_locality}")
+            if not geo_locality:
                 flash("Не удалось определить ваш район. Попробуйте еще раз.", "error")
                 return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
-            print(geo_district)
-            if not is_location_allowed(geo_district):
-                flash(f"Регистрация недоступна для вашего района ({geo_district})!", "error")
-                logging.warning(f"Попытка регистрации из запрещенного района: {geo_district}")
+      
+            if not is_location_allowed(geo_locality):
+                flash(f"Регистрация недоступна для вашего населённого пункта ({geo_locality})!", "error")
+                logging.warning(f"Попытка регистрации из запрещённого населённого пункта: {geo_locality}")
                 return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
+
+            normalized_geo = normalize_district_name(geo_locality)
+
 
             # 5. Проверяем соответствие выбранного района и геолокации
             normalized_selected = normalize_district_name(selected_district)
-            normalized_geo = normalize_district_name(geo_district)
+            normalized_geo = normalize_district_name(geo_locality)
             
             if normalized_selected != normalized_geo:
                 flash("Выбранный район не соответствует вашему местоположению!", "error")
@@ -82,7 +108,7 @@ def index():
                 process_registration(
                     form=form,
                     district=normalized_selected,
-                    city=geo_district,
+                    city=geo_locality,
                     region="Дагестан",
                     country="Россия"
                 )
@@ -97,8 +123,10 @@ def index():
 
     return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
+
 def get_full_address_by_coordinates(latitude, longitude):
     url = f'https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json&addressdetails=1'
+    print(url)
     headers = {'User-Agent': 'RaffleApp/1.0'}
     try:
         response = requests.get(url, headers=headers)
@@ -109,26 +137,23 @@ def get_full_address_by_coordinates(latitude, longitude):
         logging.error(f"Ошибка запроса к Nominatim: {e}")
         return None
 
-def extract_district_from_address(address):
-    """Извлекаем район из адреса с приоритетом по полям"""
+def extract_locality_from_address(address):
+    """Извлекает населённый пункт из ответа Nominatim"""
     if not address:
         return None
     
-    # Порядок проверки полей
     fields_to_check = [
-        'city_district',# Район (Карабудахкентский район)
-        'road',         # Улица
-        'village',       # Село
-        'city'           # Город
+        'village', 'town', 'city', 'suburb', 'municipality', 'county'
     ]
     
     for field in fields_to_check:
-        if field in address:
-            district = address[field].lower()
-            # Удаляем лишние слова для точного сравнения
-            return district
-            
+        val = address.get(field)
+        if val:
+            return val.strip().lower()
+    
     return None
+
+
 
 def format_full_address(address):
     if not address:
