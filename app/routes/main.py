@@ -75,7 +75,6 @@ def index():
 
             # 3. Извлекаем район из геоданных
             geo_locality = extract_locality_from_address(address)
-            print(f"geo_locality: {geo_locality}")
             if not geo_locality:
                 flash("Не удалось определить ваш район. Попробуйте еще раз.", "error")
                 return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
@@ -87,18 +86,12 @@ def index():
                 return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
             normalized_geo = normalize_district_name(geo_locality)
+            print(f"normalized_geo: {normalized_geo}")
 
-
-            # 5. Проверяем соответствие выбранного района и геолокации
-            normalized_selected = normalize_district_name(selected_district)
-            normalized_geo = normalize_district_name(geo_locality)
-            
-            if normalized_selected != normalized_geo:
-                flash("Выбранный район не соответствует вашему местоположению!", "error")
-                return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
+           
 
             # 6. Получаем ссылку на сообщество для района
-            community_link_obj = CommunityLink.query.filter_by(district=normalized_selected).first()
+            community_link_obj = CommunityLink.query.filter_by(district=selected_district).first()
             community_link = community_link_obj.link if community_link_obj else 'https://chat.whatsapp.com/default'
 
             # 7. Проверяем и сохраняем данные
@@ -107,7 +100,7 @@ def index():
             else:
                 process_registration(
                     form=form,
-                    district=normalized_selected,
+                    district=selected_district,
                     city=geo_locality,
                     region="Дагестан",
                     country="Россия"
