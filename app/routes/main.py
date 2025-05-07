@@ -43,7 +43,7 @@ def normalize_district_name(location):
         return None
     
     location = location.lower().strip()
-    for normalized_name, aliases in STRICT_ALLOWED_DISTRICTS.items():
+    for normalized_name, aliases in ALLOWED_DISTRICTS.items():
         if location in aliases:
             return normalized_name
     return None
@@ -127,11 +127,13 @@ def index():
 def get_full_address_by_coordinates(latitude, longitude):
     url = f'https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json&addressdetails=1'
     print(url)
-    headers = {'User-Agent': 'RaffleApp/1.0'}
+    headers = {'User-Agent': 'RaffleApp/1.0 tchinchaev@bk.ru'}
     try:
         response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            return response.json().get('address')
+        data = response.json()
+
+        if response.status_code == 200 and 'address' in data:
+            return data['address']
         return None
     except Exception as e:
         logging.error(f"Ошибка запроса к Nominatim: {e}")
