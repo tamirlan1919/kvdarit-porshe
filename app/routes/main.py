@@ -13,7 +13,7 @@ main_bp = Blueprint('main', __name__)
 STRICT_ALLOWED_DISTRICTS = {
     'Хасавюрт + район': ['хасавюрт', 'хасавюртовский район'],
     'Кизляр + район': ['кизляр', 'кизлярский район'],
-    'Бабаюртовский район': ['бабаюрт', 'бабаюртовский район']
+    'Бабаюртовский район': ['бабаюрт', 'бабаюртовский район'],
 }
 
 # Нормализация названий районов
@@ -22,7 +22,6 @@ def normalize_district_name(location):
         return None
     
     location = location.lower().strip()
-    print(location)
     for normalized_name, aliases in STRICT_ALLOWED_DISTRICTS.items():
         if location in aliases:
             return normalized_name
@@ -42,9 +41,6 @@ def index():
         if form.validate_on_submit():
             # 1. Проверка выбранного района в форме
             selected_district = form.district.data
-            print(selected_district)
-
-
             # 2. Обязательная проверка геолокации
             if not form.latitude.data or not form.longitude.data:
                 flash("Не удалось определить ваше местоположение. Включите геолокацию!", "error")
@@ -61,7 +57,7 @@ def index():
                 flash("Не удалось определить ваш район. Попробуйте еще раз.", "error")
                 return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
-            # 4. Проверяем что район из геолокации разрешен
+            print(geo_district)
             if not is_location_allowed(geo_district):
                 flash(f"Регистрация недоступна для вашего района ({geo_district})!", "error")
                 logging.warning(f"Попытка регистрации из запрещенного района: {geo_district}")
@@ -120,8 +116,8 @@ def extract_district_from_address(address):
     
     # Порядок проверки полей
     fields_to_check = [
-        'county',        # Район (Карабудахкентский район)
-        'municipality',  # Муниципальное образование
+        'city_district',# Район (Карабудахкентский район)
+        'road',         # Улица
         'village',       # Село
         'city'           # Город
     ]
@@ -130,7 +126,6 @@ def extract_district_from_address(address):
         if field in address:
             district = address[field].lower()
             # Удаляем лишние слова для точного сравнения
-            district = district.replace('район', '').strip()
             return district
             
     return None
