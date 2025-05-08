@@ -70,7 +70,7 @@
                     {% endif %}
                 {% endwith %}
             </div>
-            <div id="location-status" style="display: none;"></div>
+            
             
             <form id="registration-form" action="/" method="post" class="registration-form">
                 {{ form.hidden_tag() }}
@@ -122,6 +122,11 @@
                     <i class="fas fa-check-circle me-2"></i>Участвовать в розыгрыше
                 </button>
             </form>
+            <div class="text-center mt-3">
+                
+                <p>Если у вас не получилось зарегистрироваться 
+                    обращайтесь по этому номеру на <a href="https://wa.me/79886555557">What’s App</a></p>
+            </div>
             <!-- Ссылка на предыдущие розыгрыши -->
             <div class="previous-contests mt-4">
                 <div class="p-3 bg-dark rounded text-center">
@@ -191,6 +196,67 @@
     </div>
 </div>
 
+<div id="location-status" class="mb-3" style="display: none;"></div>
+<div class="modal fade" id="geolocationHelpModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-gradient-warning text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    Требуется ваше действие!
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="instruction-list">
+                    <div class="instruction-item bg-light rounded p-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-danger text-white me-3">
+                                <i class="fas fa-shield-alt fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 text-dark">1. Отключите VPN</h6>
+                                <small class="text-muted">Использование VPN блокирует определение локации</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-item bg-light rounded p-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-primary text-white me-3">
+                                <i class="fas fa-location-crosshairs fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 text-dark">2. Включите геолокацию</h6>
+                                <small class="text-muted">Разрешите доступ к вашему местоположению</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-item bg-light rounded p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-success text-white me-3">
+                                <i class="fas fa-sync-alt fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 text-dark">3. Обновите страницу</h6>
+                                <small class="text-muted">Для применения изменений</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button class="btn btn-primary btn-lg rounded-pill" onclick="location.reload()">
+                        <i class="fas fa-redo-alt me-2"></i>
+                        Обновить сейчас
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% if is_registered is not none %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -225,74 +291,88 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.7/dist/inputmask.min.js"></script>
 <script>
-    var phoneMask = new Inputmask('+7 (999) 999-99-99');
-    phoneMask.mask(document.getElementById('phone'));
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneMask = new Inputmask('+7 (999) 999-99-99');
+        phoneMask.mask(document.getElementById('phone'));
 
-    let locationFetched = false;
-    let lastPosition = null;
-    
-    function getLocation(callback) {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    document.getElementById('latitude').value = position.coords.latitude;
-                    document.getElementById('longitude').value = position.coords.longitude;
-                    console.log('Геолокация обновлена:', {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                    });
-                    locationFetched = true;
-                    lastPosition = position;
-                    if (callback) callback(true);
-                },
-                function(error) {
-                    document.getElementById('location-status').style.display = 'block';
-                    let errorMessage;
-                    switch (error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMessage = "Доступ к геолокации запрещён. Разрешите доступ в настройках.";
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMessage = "Местоположение недоступно. Проверьте GPS или интернет.";
-                            break;
-                        case error.TIMEOUT:
-                            errorMessage = "Время ожидания истекло. Попробуйте снова.";
-                            break;
-                        default:
-                            errorMessage = "Неизвестная ошибка геолокации.";
-                    }
-                    document.getElementById('location-status').innerText = errorMessage;
-                    if (callback) callback(false);
-                },
-                {
-                    enableHighAccuracy: false,
-                    timeout: 10000,
-                    maximumAge: 60000
+        // Элементы для отображения ошибок
+        const locationStatus = document.getElementById('location-status');
+        const geoErrorModal = new bootstrap.Modal('#geolocationHelpModal');
+
+        // Основная функция проверки геолокации
+        const checkGeolocation = () => {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject('Геолокация не поддерживается вашим браузером');
+                    return;
                 }
-            );
-        } else {
-            alert('Геолокация не поддерживается этим браузером.');
-            if (callback) callback(false);
-        }
-    }
-    
-    document.getElementById('registration-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (locationFetched && lastPosition) {
-            // Используем уже полученные координаты
-            document.getElementById('latitude').value = lastPosition.coords.latitude;
-            document.getElementById('longitude').value = lastPosition.coords.longitude;
-            document.getElementById('registration-form').submit();
-        } else {
-            // Запрашиваем геолокацию
-            getLocation(function(success) {
-                if (success) {
-                    document.getElementById('registration-form').submit();
-                } else {
-                    // Ошибка уже отображена в location-status
-                }
+
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        document.getElementById('latitude').value = position.coords.latitude;
+                        document.getElementById('longitude').value = position.coords.longitude;
+                        resolve();
+                    },
+                    error => handleGeolocationError(error, reject),
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
             });
-        }
+        };
+
+        // Обработчик ошибок геолокации
+        const handleGeolocationError = (error, reject) => {
+            let message;
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'Доступ к геолокации запрещен. Включите в настройках!';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Не удалось определить местоположение';
+                    break;
+                case error.TIMEOUT:
+                    message = 'Время ожидания истекло';
+                    break;
+                default:
+                    message = 'Ошибка определения местоположения';
+            }
+            
+            // Показываем ошибку в интерфейсе
+            locationStatus.innerHTML = `
+                <div class="alert alert-danger d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle me-3"></i>
+                    <div>${message}</div>
+                </div>
+            `;
+            locationStatus.style.display = 'block';
+            
+            // Показываем модальное окно с инструкциями
+            geoErrorModal.show();
+            reject(message);
+        };
+
+        // Обработчик отправки формы
+        document.getElementById('registration-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            try {
+                locationStatus.style.display = 'none';
+                await checkGeolocation();
+                
+                // Дополнительная валидация полей
+                if (!this.checkValidity()) {
+                    this.reportValidity();
+                    return;
+                }
+                
+                this.submit();
+                
+            } catch (error) {
+                console.error('Geolocation Error:', error);
+            }
+        });
+
+        // Первоначальная проверка при загрузке
+        checkGeolocation().catch(() => {});
     });
 </script>
 {% endblock %}

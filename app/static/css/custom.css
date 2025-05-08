@@ -498,6 +498,43 @@ body::before {
     margin-bottom: 20px;
 }
 
+.icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.instruction-item {
+    transition: transform 0.2s;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.instruction-item:hover {
+    transform: translateX(5px);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #ffc107, #ff9800);
+}
+
+.alert-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    max-width: 350px;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    border-radius: 0.5rem;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 1rem;
+}
+
 @media (max-width: 768px) {
     .merc{
         display: block;
