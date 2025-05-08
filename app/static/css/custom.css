@@ -497,3 +497,9 @@ body::before {
     border-radius: 4px;
     margin-bottom: 20px;
 }
+
+@media (max-width: 768px) {
+    .merc{
+        display: block;
+    }
+}
