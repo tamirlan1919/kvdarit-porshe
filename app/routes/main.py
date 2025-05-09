@@ -73,6 +73,10 @@ def normalize_district_name(location):
         flags=re.IGNORECASE
     ).strip()
     
+        # Ручное сопоставление для Цумадинского района
+    if 'цумадинский' in location:
+        return 'Бабаюртовский район'  # Сопоставляем с Бабаюртовским
+    
     # Проверяем ключевые слова для каждого района
     for district, data in ALLOWED_DISTRICTS.items():
         for keyword in data['keywords']:
