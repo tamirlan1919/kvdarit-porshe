@@ -55,7 +55,7 @@ ALLOWED_DISTRICTS = {
             'люксембург', 'мужукай', 'новая коса', 'новокаре', 'оразгулаул', 'советское', 'тавлу-отар',
             'тамазатюбе', 'татаюрт', 'туршунай', 'уцмиюрт', 'хамаматюрт', 'хасанай', 'чанкаюрт',
             'шахбулатотар', 'янгылбай', 'Шава', 'Цумадинский', 'Цумадинский район', 'тамазатюбинский сельсовет', 'бабаюртовский район',
-            'Кутан Бутуш', 'кутан бутуш'
+            'Кутан Бутуш', 'кутан бутуш', 'ибрагимотар', 'тляратинский', 'бабаюртовский', 'бюрукутан'
         ]
     }
 }
@@ -77,7 +77,9 @@ def normalize_district_name(location):
         # Ручное сопоставление для Цумадинского района
     if 'цумадинский' in location:
         return 'Бабаюртовский район'  # Сопоставляем с Бабаюртовским
-    
+
+    if 'тляратинский' in location:
+        return 'Бабаюртовский район'
     # Проверяем ключевые слова для каждого района
     for district, data in ALLOWED_DISTRICTS.items():
         for keyword in data['keywords']:
@@ -158,6 +160,7 @@ def index():
 
 def get_full_address_by_coordinates(latitude, longitude):
     url = f'https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json&addressdetails=1'
+    print(f"URL: {url}")
     headers = {'User-Agent': 'RaffleApp/1.0 tchinchaev@bk.ru'}
     try:
         response = requests.get(url, headers=headers)
