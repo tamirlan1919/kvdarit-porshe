@@ -157,7 +157,7 @@ def index():
     return render_template('index.html', form=form, is_registered=is_registered, community_link=community_link)
 
 def get_full_address_by_coordinates(latitude, longitude):
-    url = f'https://nominatim.openstreetmap.org/reverse?lat={43.264066}&lon={46.629507}&format=json&addressdetails=1'
+    url = f'https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json&addressdetails=1'
     headers = {'User-Agent': 'RaffleApp/1.0 tchinchaev@bk.ru'}
     try:
         response = requests.get(url, headers=headers)
