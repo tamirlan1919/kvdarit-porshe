@@ -186,42 +186,64 @@
                 </table>
             </div>
 
-            <!-- Пагинация -->
-            <nav aria-label="Навигация" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if participants.has_prev %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=participants.prev_num, district=current_district, gender=current_gender) }}">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                    </li>
-                    {% else %}
-                    <li class="page-item disabled">
-                        <span class="page-link"><i class="fas fa-chevron-left"></i></span>
-                    </li>
-                    {% endif %}
-                    
-                    {% for page_num in range(start_page, end_page + 1) %}
-                        <li class="page-item {% if page_num == participants.page %}active{% endif %}">
-                            <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=page_num, district=current_district, gender=current_gender) }}">
-                                {{ page_num }}
-                            </a>
-                        </li>
-                    {% endfor %}
-                    
-                    {% if participants.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=participants.next_num, district=current_district, gender=current_gender) }}">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </li>
-                    {% else %}
-                    <li class="page-item disabled">
-                        <span class="page-link"><i class="fas fa-chevron-right"></i></span>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+<!-- Пагинация -->
+<nav aria-label="Навигация" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <!-- Кнопка для первой страницы -->
+        {% if participants.page > 3 %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=1, district=current_district, gender=current_gender) }}">
+                «
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- Кнопка для предыдущей страницы -->
+        {% if participants.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=participants.prev_num, district=current_district, gender=current_gender) }}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link"><i class="fas fa-chevron-left"></i></span>
+        </li>
+        {% endif %}
+        
+        <!-- Отображение ближайших страниц -->
+        {% for page_num in range(start_page, end_page + 1) %}
+            <li class="page-item {% if page_num == participants.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=page_num, district=current_district, gender=current_gender) }}">
+                    {{ page_num }}
+                </a>
+            </li>
+        {% endfor %}
+
+        <!-- Кнопка для следующей страницы -->
+        {% if participants.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=participants.next_num, district=current_district, gender=current_gender) }}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link"><i class="fas fa-chevron-right"></i></span>
+        </li>
+        {% endif %}
+        
+        <!-- Кнопка для последней страницы с номером -->
+        {% if participants.page < participants.pages - 2 %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_panel.admin_panel', page=participants.pages, district=current_district, gender=current_gender) }}">
+                {{ participants.pages }}
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+
             
             <div class="text-center text-muted mt-2">
                 <small>
